@@ -1,6 +1,6 @@
-```
-# Mycobacterium avium subsp. paratuberculosis infection progression Hidden Markov model
-This repository contains data and code associated with "Characterizing infectious disease progression through discrete states using Hidden Markov models"
+## Continuous time HMM for Mycobacterium avium subsp. paratuberculosis infection progression.
+
+This repository contains data and code associated with "Characterizing infectious disease progression through discrete states using Hidden Markov models" 
 
 ## Contents
 Python scripts
@@ -19,4 +19,3 @@ This directory contains all data necessary to run the models and produce all fig
 
 ## Plots
 This directory contains .eps and .tiff files of each plot in the publication. 
-```
