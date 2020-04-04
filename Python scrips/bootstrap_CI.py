@@ -22,7 +22,7 @@ print(seed)
 np.random.seed(seed)
 
 #load data
-sequence, tau  =ghmm.read_file('/Users/kristinaceres/Desktop/CT_HMM/data/hmm_ready_data.csv')
+sequence, tau  =ghmm.read_file('/Users/kristinaceres/Development/HMM_project/Post_review_1/data/hmm_ready_data_with_categories_test_4.csv')
 
 #initializaze bootstrap
 n_iterations = 1000
@@ -51,6 +51,9 @@ shape1_2 = list()
 scale0_2 = list()
 scale1_2 = list()
 
+mean0_2 = list()
+mean1_2 = list()
+
 shape0_3 = list()
 shape1_3 = list()
 shape2_3 = list()
@@ -58,6 +61,11 @@ scale0_3 = list()
 scale1_3 = list()
 scale2_3 = list()
 
+mean0_3 = list()
+mean1_3 = list()
+mean2_3 = list()
+
+# initial probabilities
 ip0_2 = list()
 ip1_2 = list()
 
@@ -90,7 +98,10 @@ for i in range(n_iterations):
         scale1_2.append(scale[1])
         shape0_2.append(shape[0])
         shape1_2.append(shape[1])
-    
+
+        mean0_2.append(shape[0]*scale[0])
+        mean1_2.append(shape[1]*scale[1])
+
         ip0_2.append(Ip[0])
         ip1_2.append(Ip[1])
         print(i)
@@ -120,6 +131,10 @@ scale_upper2 = list()
 ip_param_list2 = [ip0_2, ip1_2]
 ip_lower2 = list()
 ip_upper2 = list()
+mean_param_list2 = [mean0_2, mean1_2]
+mean_lower2 = list()
+mean_upper2 = list()
+
 
 for k in range(len(shape_param_list2)):
     shape_lower2.append(np.percentile(shape_param_list2[k], p1))
@@ -128,6 +143,8 @@ for k in range(len(shape_param_list2)):
     scale_upper2.append(np.percentile(scale_param_list2[k], p2))
     ip_lower2.append(max(0, np.percentile(ip_param_list2[k], p1)))
     ip_upper2.append(min(1, np.percentile(ip_param_list2[k], p2)))
+    mean_lower2.append(np.percentile(mean_param_list2[k], p1))
+    mean_upper2.append(np.percentile(mean_param_list2[k], p2))
 
 
 trans_parameters2 = ['qmat02', 'qmat12', 'qmat22', 'qmat32']
@@ -144,11 +161,17 @@ print(scale_ci_df2)
 
 ip_parameters2 = ['ip0_2', 'ip1_2']
 ip_ci_df2 = pd.DataFrame({'parameters': ip_parameters2, 'lower': ip_lower2, 'upper': ip_upper2})
+print(ip_ci_df2)
 
-trans_ci_df2.to_csv(path_or_buf = "q_ci2.csv", index = True)
-shape_ci_df2.to_csv(path_or_buf = "shape_ci2.csv", index = True)
-scale_ci_df2.to_csv(path_or_buf = "scale_ci2.csv", index = True)
-ip_ci_df2.to_csv(path_or_buf= "ip_ci2.csv", index = True)
+mean_parameters2 = ['mean0_2', 'mean1_2']
+mean_ci_df2 = pd.DataFrame({'parameters': mean_parameters2, 'lower': mean_lower2, 'upper': mean_upper2})
+print(mean_ci_df2)
+
+trans_ci_df2.to_csv(path_or_buf = "q_ci2_"+str(seed)+".csv", index = True)
+shape_ci_df2.to_csv(path_or_buf = "shape_ci2_"+str(seed)+".csv", index = True)
+scale_ci_df2.to_csv(path_or_buf = "scale_ci2_"+str(seed)+".csv", index = True)
+ip_ci_df2.to_csv(path_or_buf= "ip_ci2_"+str(seed)+".csv", index = True)
+mean_ci_df2.to_csv(path_or_buf= "mean_ci2_"+str(seed)+".csv", index = True)
 #run bootstrap 3 states ############################################################################
 
 for i in range(n_iterations):
@@ -185,7 +208,11 @@ for i in range(n_iterations):
         shape0_3.append(shape[0])
         shape1_3.append(shape[1])
         shape2_3.append(shape[2])
-    
+
+        mean0_3.append(shape[0] * scale[0])
+        mean1_3.append(shape[1] * scale[1])
+        mean2_3.append(shape[2] * scale[2])
+
         ip0_3.append(Ip[0])
         ip1_3.append(Ip[1])
         ip2_3.append(Ip[2])
@@ -215,6 +242,10 @@ ip_param_list3 = [ip0_3, ip1_3, ip2_3]
 ip_lower3 = list()
 ip_upper3 = list()
 
+mean_param_list3 = [mean0_3, mean1_3, mean2_3]
+mean_upper3 = list()
+mean_lower3 = list()
+
 for k in range(len(shape_param_list3)):
     shape_lower3.append(np.percentile(shape_param_list3[k], p1))
     shape_upper3.append(np.percentile(shape_param_list3[k], p2))
@@ -222,22 +253,29 @@ for k in range(len(shape_param_list3)):
     scale_upper3.append(np.percentile(scale_param_list3[k], p2))
     ip_lower3.append(max(0, np.percentile(ip_param_list3[k], p1)))
     ip_upper3.append(min(1, np.percentile(ip_param_list3[k], p2)))
+    mean_lower3.append(np.percentile(mean_param_list3[k], p1))
+    mean_upper3.append(np.percentile(mean_param_list3[k], p2))
 
 trans_parameters3 = ['qmat03', 'qmat13', 'qmat23', 'qmat33', 'qmat43', 'qmat53', 'qmat63', 'qmat73', 'qmat83']
 trans_ci_df3 = pd.DataFrame({'parameters': trans_parameters3, 'lower': trans_lower3, 'upper': trans_upper3})
 print(trans_ci_df3)
 
 shape_parameters3 = ['shape03', 'shape13', 'shape23']
-scale_parameters3 = ['scale01', 'scale13', 'scale23']
+scale_parameters3 = ['scale03', 'scale13', 'scale23']
 shape_ci_df3 = pd.DataFrame({'parameters': shape_parameters3, 'lower': shape_lower3, 'upper': shape_upper3})
 print(shape_ci_df3)
 scale_ci_df3 = pd.DataFrame({'parameters': scale_parameters3, 'lower': scale_lower3, 'upper': scale_upper3})
 print(scale_ci_df3)
-ip_parameters3 = ['ip01', 'ip13', 'ip23']
+ip_parameters3 = ['ip03', 'ip13', 'ip23']
 ip_ci_df3 = pd.DataFrame({'parameters': ip_parameters3, 'lower': ip_lower3, 'upper': ip_upper3})
 print(ip_ci_df3)
 
-trans_ci_df3.to_csv(path_or_buf = "q_ci3.csv", index = True)
-shape_ci_df3.to_csv(path_or_buf = "shape_ci3.csv", index = True)
-scale_ci_df3.to_csv(path_or_buf = "scale_ci3.csv", index = True)
-ip_ci_df3.to_csv(path_or_buf = "ip_ci3.csv", index = True)
+mean_parameters3 = ['mean03', 'mean13', 'mean23']
+mean_ci_df3 = pd.DataFrame({'parameters': mean_parameters3, 'lower': mean_lower3, 'upper': mean_upper3})
+print(mean_ci_df3)
+
+trans_ci_df3.to_csv(path_or_buf = "q_ci3_"+str(seed)+".csv", index = True)
+shape_ci_df3.to_csv(path_or_buf = "shape_ci3_"+str(seed)+".csv", index = True)
+scale_ci_df3.to_csv(path_or_buf = "scale_ci3_"+str(seed)+".csv", index = True)
+ip_ci_df3.to_csv(path_or_buf = "ip_ci3_"+str(seed)+".csv", index = True)
+mean_ci_df3.to_csv(path_or_buf = "ip_ci3_"+str(seed)+".csv", index = True)
