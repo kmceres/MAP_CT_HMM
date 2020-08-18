@@ -5,6 +5,7 @@ date: "7/30/2020"
 output:
   pdf_document: default
   html_document: default
+  rmarkdown::github_document
 ---
 ## load packages
 ```{r setup}
