@@ -2,8 +2,7 @@
 title: "Figures"
 author: "Kristina Ceres"
 date: "7/30/2020"
-output:
-  rmarkdown::github_document
+output:output: github_document
   #html_document: default
   #pdf_document: default
 ---
