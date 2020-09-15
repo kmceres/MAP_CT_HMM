@@ -17,5 +17,3 @@ This directory contains the files necessary to process data, and produce plots.
 ## Data
 This directory contains all data necessary to run the models and produce all figures and tables. The data is organized by figure and table. 
 
-## Plots
-This directory contains .eps and .tiff files of each plot in the publication. 
