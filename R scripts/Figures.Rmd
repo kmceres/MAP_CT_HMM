@@ -1,10 +1,10 @@
 ---
 title: "Figures"
 author: "Kristina Ceres"
-date: "7/30/2020"
+date: "10/28/2020"
 output: github_document
-  #html_document: default
   #pdf_document: default
+  #html_document: default
 ---
 ## load packages
 ```{r setup}
