@@ -15,10 +15,12 @@ library(viridis)
 library(Matrix)
 library(ggpubr)
 library(rmarkdown)
+library(matrixStats)
 ```
 
 ## read in data 
 ```{r}
+setwd("~/PhD/HMM_project/CT_HMM/Figures/")
 ## data from cows
 data = read.csv("../data/hmm_ready_data.csv")
 
@@ -105,12 +107,17 @@ scale3<- c(0.12568632084200168, 0.2815762121436809, 0.04040960031804022)
 d0_ex =rgamma(n = 10000, shape=shape3[1], scale=scale3[1])
 d1_ex =rgamma(n = 10000, shape=shape3[2], scale=scale3[2])
 d2_ex =rgamma(n = 10000, shape=shape3[3], scale=scale3[3])
-gam_ex  = tibble(d0_ex, d1_ex, d2_ex)
-gam_ex = gam_ex %>% gather(key = "distribution", value = "density")
+d0_ex =dgamma(seq(1,12,length=1000), shape=shape3[1], scale=scale3[1])
+d1_ex =dgamma(seq(1,12,length=1000), shape=shape3[2], scale=scale3[2])
+d2_ex =dgamma(seq(1,12,length=1000), shape=shape3[3], scale=scale3[3])
+gam_ex  = tibble(d0_ex, d1_ex, d2_ex, x=seq(1,12,length=1000))
+gam_ex = gam_ex %>% gather(key = "distribution", value = "density",-x)
+
 p2 = ggplot()+
-  geom_density(data = gam_ex, aes(density, fill = distribution), alpha = .5) +
-  labs(x = "log(CFU) Value")+ scale_fill_viridis(discrete=T, labels=c("State 0", "State 1", "State 2"))+
-  theme(legend.position="bottom")
+  geom_line(data = gam_ex, aes(x=x, y=density, color = distribution)) +
+  labs(x = "log(CFU) Value")+ 
+  scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438"), labels=c("State 0", "State 1", "State 2"))+
+  scale_x_continuous(limits=c(.5,10))+theme_grey()
 p2
 ```
 
@@ -132,8 +139,8 @@ qmat3 = matrix(c(outputs3[1,]$qout0,outputs3[1,]$qout1,outputs3[1,]$qout2,
 
 n = 300
 # make data frames 
-q2 = tibble(x = seq(1,n, length=n), "0" = rep(0, n), "1" = rep(0,n), group = rep("2 State", n))
-q3 = tibble(x = seq(1,n, length=n), "0" = rep(0, n), "1"= rep(0,n), "2" = rep(0,n), group = rep("3 State",n))
+q2 = tibble(x = seq(1,n, length=n), "0" = rep(0, n), "1" = rep(0,n), group = rep("2 State Model", n))
+q3 = tibble(x = seq(1,n, length=n), "0" = rep(0, n), "1"= rep(0,n), "2" = rep(0,n), group = rep("3 State Model",n))
 
 # get state probabilities for each position in the chain
 for (i in 1:n){
@@ -175,29 +182,25 @@ Generate a dataframe of samples from gamma distributions with fitted shape and s
 n = nrow(data)
 shape2 <- c(outputs2[1,]$shape_out0, outputs2[1,]$shape_out1)
 scale2 <- c(outputs2[1,]$scale_out0, outputs2[1,]$scale_out1)
-d02 =rgamma(n = round(pi2[1]*n), shape=shape2[1], scale=scale2[1])
-d12 =rgamma(n = round(pi2[2]*n), shape=shape2[2], scale=scale2[2])
+
+d02 =dgamma(seq(1,12,length=1000), shape=shape2[1], scale=scale2[1])
+d12 =dgamma(seq(1,12,length=1000), shape=shape2[2], scale=scale2[2])
 
 shape3 <- c(outputs3[1,]$shape_out0, outputs3[1,]$shape_out1, outputs3[1,]$shape_out2)
 scale3 <- c(outputs3[1,]$scale_out0, outputs3[1,]$scale_out1, outputs3[1,]$scale_out2)
-d03 =rgamma(n = round(pi3[1] * n), shape=shape3[1], scale=scale3[1])
-d13 =rgamma(n = round(pi3[2] * n), shape=shape3[2], scale=scale3[2])
-d23 =rgamma(n = round(pi3[3] * n), shape=shape3[3], scale=scale3[3])
 
-gammas20 = tibble(dist = d02, State = rep("0", length(d02)), group = rep("2 State", length(d02)))
-gammas21 = tibble(dist = d12, State = rep("1", length(d12)), group = rep("2 State", length(d12)))
+d03 =dgamma(seq(1,12,length=1000), shape=shape3[1], scale=scale3[1])
+d13 =dgamma(seq(1,12,length=1000), shape=shape3[2], scale=scale3[2])
+d23 =dgamma(seq(1,12,length=1000), shape=shape3[3], scale=scale3[3])
 
-gammas30 = tibble(dist = d03, State = rep("0", length(d03)), group = rep("3 State", length(d03)))
-gammas31 = tibble(dist = d13, State = rep("1", length(d13)), group = rep("3 State", length(d13)))
-gammas32 = tibble(dist = d23, State = rep("2", length(d23)), group = rep("3 State", length(d23)))
+gammas20 = tibble(dist = d02, State = rep("0", length(d02)), group = rep("2 State Model", length(d02)), x=seq(1,12,length=1000))
+gammas21 = tibble(dist = d12, State = rep("1", length(d12)), group = rep("2 State Model", length(d12)),x=seq(1,12,length=1000))
 
-gammas = bind_rows(gammas20, gammas21, gammas30, gammas31, gammas32)
-
-q$type = rep("stationary", nrow(q))
-gammas$type = rep("emiss", nrow(gammas))
+gammas30 = tibble(dist = d03, State = rep("0", length(d03)), group = rep("3 State Model", length(d03)),x=seq(1,12,length=1000))
+gammas31 = tibble(dist = d13, State = rep("1", length(d13)), group = rep("3 State Model", length(d13)),x=seq(1,12,length=1000))
+gammas32 = tibble(dist = d23, State = rep("2", length(d23)), group = rep("3 State Model", length(d23)),x=seq(1,12,length=1000))
 
 gammas = bind_rows(gammas20, gammas21, gammas30, gammas31, gammas32)
-
 ```
 
 Generate subplots for Figure 3 and stich them together 
@@ -207,9 +210,14 @@ p3a = ggplot(data = q)+geom_line(aes(x=x, y=Probability, color=State))+facet_wra
   scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438")) + theme_gray()
 
 p3.1 = ggplot()+
-   stat_density(data = gammas, aes(x=dist, group = State, fill = State),position="identity", alpha = .7) +
+  stat_density(data = gammas, aes(x=dist, group = State, fill = State),position="identity", alpha = .7) +
   facet_wrap(~group, nrow=1)+
   scale_fill_manual(values=c("#874E9A","#50AAA3","#BAC438"))+
+  labs(x= "log(CFU) MAP", y = "Density") + theme_grey()
+p3.1 = ggplot()+
+  geom_line(data = gammas, aes(x=x, y=dist,group = State, color = State)) +
+  facet_wrap(~group, nrow=1)+
+  scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438"))+
   labs(x= "log(CFU) MAP", y = "Density") + theme_grey()
 
 p3.2 <- ggplot()+
@@ -222,9 +230,9 @@ p3.BC<- ggarrange(p3.2, p3.1,
                   widths = c(.3, .7))
 
 p3 <- ggarrange(p3a, p3.BC, 
-          labels=c("A"),
-          ncol=1, nrow=2,
-          heights=c(.5,.5))
+                labels=c("A"),
+                ncol=1, nrow=2,
+                heights=c(.5,.5))
 p3
 ```
 
@@ -254,7 +262,7 @@ time_data = data %>% mutate(time = ifelse(is.na(time) == T, 0, time)) %>%
 p0_2 = read_posterior("../data/posterior0_df_2.csv", time_data, 2, 0)
 p1_2 = read_posterior("../data/posterior1_df_2.csv", time_data, 2, 1)
 p2 = bind_rows(p0_2, p1_2)
-p2 = p2  %>% group_by(CowID, state)  %>%
+p2 = p2  %>% group_by(CowID...1, state)  %>%
   mutate(Endstate = case_when(
     state==0 & last(prob) > 0.75 ~ "0",
     state== 1 & last(prob) > 0.75 ~ "1",
@@ -266,54 +274,86 @@ p0_3 = read_posterior("../data/posterior0_df_3.csv", time_data, 3, 0)
 p1_3 = read_posterior("../data/posterior1_df_3.csv", time_data, 3, 1)
 p2_3 = read_posterior("../data/posterior2_df_3.csv", time_data, 3, 2)
 p3 = bind_rows(p0_3, p1_3, p2_3)
-p3 = p3 %>%  group_by(CowID, state) %>% mutate(max_last_prob = max(last(prob))) %>% 
-    group_by(CowID) %>% mutate(max_end_prob = max(max_last_prob)) %>% 
-    group_by(CowID, state)  %>%
-      mutate(Endstate = case_when(
-        state==0 & last(prob) == max_end_prob ~ "0",
-        state==1 & last(prob) == max_end_prob ~ "1",
-        state==2 & last(prob) == max_end_prob ~ "2")) %>% 
-      group_by(CowID) %>% 
-      mutate(Endstate = case_when(
-        "0" %in% Endstate ~ "0",
-        "1" %in% Endstate ~ "1",
-        "2" %in% Endstate ~ "2"
-      )) 
+p3 = p3 %>%  group_by(CowID...1, state) %>% mutate(max_last_prob = max(last(prob))) %>% 
+  group_by(CowID...1) %>% mutate(max_end_prob = max(max_last_prob)) %>% 
+  group_by(CowID...1, state)  %>%
+  mutate(Endstate = case_when(
+    state==0 & last(prob) == max_end_prob ~ "0",
+    state==1 & last(prob) == max_end_prob ~ "1",
+    state==2 & last(prob) == max_end_prob ~ "2")) %>% 
+  group_by(CowID...1) %>% 
+  mutate(Endstate = case_when(
+    "0" %in% Endstate ~ "0",
+    "1" %in% Endstate ~ "1",
+    "2" %in% Endstate ~ "2"
+  )) 
 
 post= bind_rows(p2,p3)
 
-post = post %>% group_by(CowID, nstates, times) %>% mutate(max_prob = ifelse(prob == max(prob), state, -1)) 
-post = post %>% group_by(CowID, nstates, times) %>% 
+post = post %>% group_by(CowID...1, nstates, times) %>% mutate(max_prob = ifelse(prob == max(prob), state, -1)) 
+post = post %>% group_by(CowID...1, nstates, times) %>% 
   mutate(max_prob = ifelse(max_prob == max(max_prob), max_prob, max(max_prob))) 
 
-post = post %>% group_by(CowID, nstates)%>% mutate(max_prob = as.numeric(max_prob)+runif(1, -.05,.05)) %>%
-  mutate(nstates2 = ifelse(nstates == "2" , "2 State", "3 State"))
+post = post %>% group_by(CowID...1, nstates)%>% mutate(max_prob = as.numeric(max_prob)+runif(1, -.05,.05)) %>%
+  mutate(nstates2 = ifelse(nstates == "2" , "2 State Model", "3 State Model"))
+
+post2 <- post %>% group_by(nstates, CowID...1, SampleTime) %>% mutate(max = max(prob)) %>% filter(prob==max)
+p1data$SampleTime <- as.character(p1data$SampTime)
+p1data$CowID...1 <- p1data$CombinedID
+post_w_cfu <- left_join(post2, p1data, by=c("CowID...1", "SampleTime"))
+
+post_w_cfu$placeholder = " "
+
+ndraws=1000
+rand_cfus <- matrix(data=NA, nrow = nrow(post_w_cfu), ncol=ndraws)
+for (r in 1:nrow(post_w_cfu)){
+  if(post_w_cfu$nstates[r] == 2 & post_w_cfu$state[r] == 0){
+    rand_cfus[r,]= rgamma(ndraws, shape=shape2[1], scale=scale2[1])
+  }
+   if(post_w_cfu$nstates[r] == 2 & post_w_cfu$state[r] == 1){
+     rand_cfus[r,]= rgamma(ndraws, shape=shape2[2], scale=scale2[2])
+   }
+   if(post_w_cfu$nstates[r] == 3 & post_w_cfu$state[r] == 0){
+     rand_cfus[r,]= rgamma(ndraws, shape=shape3[1], scale=scale3[1])
+   }
+   if(post_w_cfu$nstates[r] == 3 & post_w_cfu$state[r] == 1){
+     rand_cfus[r,]= rgamma(ndraws, shape=shape3[2], scale=scale3[2])
+   }
+   if(post_w_cfu$nstates[r] == 3 & post_w_cfu$state[r] == 2){
+     rand_cfus[r,]= rgamma(ndraws, shape=shape3[3], scale=scale3[3])
+   }
+}
+probs=c(.1, .5, .9)
+summary_df <- as_tibble(rowQuantiles(rand_cfus, probs=probs))
+colnames(summary_df) = c("ten", "median", "ninety")
+
+new <- bind_cols(post_w_cfu, summary_df)
+subset2 = new %>% filter(CombinedID %in% idlist)
 ```
+# Create subplots and combine 
+```{r,fig.width=6, fig.height=10}
+p4a = ggplot(post_w_cfu)+geom_line(aes(x=times, y = max_prob, group=CowID...1, color=Endstate)) +
+  facet_grid(cols=vars(nstates2), rows=vars(placeholder))+
+  scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438"))+
+  labs(color = "State", x = NULL, y = "Maximum probability state")+ theme_bw()+
+  scale_x_continuous(limits=c(0,108))
 
-Create subplots and combine
-```{r}
-p4a <- ggplot(post, aes(x = times, y = max_prob, group=Endstate, color=Endstate)) +
-  facet_grid(rows=vars(nstates2))+ scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438"))+        geom_smooth(method = 'loess', se = T)+
-  theme(legend.position="right")+labs(x="Time (weeks)", y = "Maximum posterior probability", color = "End State") + scale_x_continuous(limits=c(0, 110))
+p4b <- ggplot(subset2)+
+  geom_point(aes(x=time2, y=median, color=state))+
+  geom_errorbar(aes(x=time2, ymin=ten, ymax=ninety, color=state))+
+  geom_line(aes(x=time2, y = cor_totCFU), color = "black")+
+  geom_point(aes(x=time2, y= cor_totCFU), color = "black")+
+  labs(x= "Time (weeks)", y = "log(CFU) MAP", color="State")+
+  scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438"))+
+  theme(legend.position="right")+
+  facet_grid(cols=vars(nstates2), rows=vars(CowID...1))+
+  scale_x_continuous(limits=c(0,108))+theme_bw()
 
-
-p4b <- ggplot(data = subset) + 
-      geom_line(aes(x=time2, y = cor_totCFU, group=CombinedID, color=CombinedID))+
-      scale_color_viridis(discrete=T)+labs(x= "Time (weeks)", y = "log(CFU) MAP", color="Cow ID")+
-      theme(legend.position="right")+scale_x_continuous(limits=c(0,113))+ facet_grid()
 
 p4 <- ggarrange(p4a, p4b,
-          labels = c("A", "B"),
-          ncol = 1, nrow = 2,
-          heights = c(.7,.3))
+                labels = c("A", "B"),
+                ncol = 1, nrow = 2,
+                heights = c(.25,.75))
 p4
 ```
 
-
-#Supplemental Figure 1
-```{r}
-s1 = ggplot(post)+geom_line(aes(x=times, y = max_prob, group=CowID, color=Endstate)) +
-  facet_grid(vars(nstates2))+ scale_color_manual(values=c("#874E9A","#50AAA3","#BAC438"))+
-  labs(color = "End State", x = "Time", y = "Maximum posterior probability")+ theme_grey()
-s1
-```
