@@ -27,7 +27,7 @@ sequence, tau  =ghmm.read_file('hmm_ready_data.csv')
 
 #initializaze bootstrap
 n_iterations = 1000
-n_size = int(len(sequence) * .5)
+n_size = int(len(sequence) * 1) 
 
 
 #creating lists to store transition probability parameters
